@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <!-- PLANTILLA AUTH: descomentar al activar login JWT y rutas [Authorize].
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.3" />
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <!--
+    PLANTILLA AUTH: archivos de referencia desactivados.
+    Para compilarlos, elimina este ItemGroup y sigue docs/PLANTILLA_AUTH.md.
+  -->
+  <ItemGroup>
+    <Compile Remove="Dtos\Auth\**\*.cs" />
+    <Compile Remove="Entities\AuthConstants.cs" />
+    <Compile Remove="Modules\Features\AuthOptions.cs" />
+    <Compile Remove="Modules\HttpClient\Handlers\AccessTokenHandler.cs" />
+    <Compile Remove="Persistence\AuthRepository.cs" />
+    <Compile Remove="Persistence\IPersistence\IAuthRepository.cs" />
+    <Compile Remove="Services\Auth\**\*.cs" />
+    <Compile Remove="Services\IServices\Auth\**\*.cs" />
+    <Content Remove="Components\RedirectToLogin.razor" />
+  </ItemGroup>
+</Project>

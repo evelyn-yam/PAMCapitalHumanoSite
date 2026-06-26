@@ -1,0 +1,60 @@
+@page "/2fa"
+
+<PageTitle>2FA</PageTitle>
+
+<div class="kt-card auth-two-factor-card" id="2fa_form">
+    <form class="kt-card-content flex flex-col gap-5 p-10" @onsubmit="HandleContinue" @onsubmit:preventDefault="true">
+        <img alt="image" class="dark:hidden h-20 mb-2" src="/assets/media/illustrations/34.svg" />
+        <img alt="image" class="light:hidden h-20 mb-2" src="/assets/media/illustrations/34-dark.svg" />
+
+        <div class="text-center mb-2">
+            <h3 class="text-lg font-medium text-mono mb-5">Verifica tu telefono</h3>
+            <div class="flex flex-col">
+                <span class="text-sm text-secondary-foreground mb-1.5">Ingresa el codigo de verificacion enviado a</span>
+                <a class="text-sm font-medium text-mono" href="#">****** 7859</a>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-2.5">
+            @for (var index = 0; index < Code.Length; index++)
+            {
+                var currentIndex = index;
+                <input class="kt-input focus:border-primary/10 focus:ring-3 focus:ring-primary/10 size-10 shrink-0 px-0 text-center"
+                       maxlength="1"
+                       name="@($"code_{currentIndex}")"
+                       type="text"
+                       value="@Code[currentIndex]"
+                       @oninput="eventArgs => UpdateCode(currentIndex, eventArgs.Value?.ToString())" />
+            }
+        </div>
+
+        <div class="flex items-center justify-center mb-2">
+            <span class="text-2sm text-secondary-foreground me-1.5">No recibiste el codigo? (37s)</span>
+            <a class="text-2sm kt-link" href="/sign-in">Reenviar</a>
+        </div>
+
+        @if (Submitted)
+        {
+            <div class="kt-alert kt-alert-light kt-alert-success">
+                <div class="kt-alert-title">Codigo listo para validar.</div>
+            </div>
+        }
+
+        <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Continuar</button>
+    </form>
+</div>
+
+@code {
+    private string?[] Code { get; } = new string?[6];
+    private bool Submitted { get; set; }
+
+    private void UpdateCode(int index, string? value)
+    {
+        Code[index] = string.IsNullOrEmpty(value) ? null : value[..Math.Min(value.Length, 1)];
+    }
+
+    private void HandleContinue()
+    {
+        Submitted = true;
+    }
+}

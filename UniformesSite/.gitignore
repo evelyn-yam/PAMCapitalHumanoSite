@@ -1,0 +1,39 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / Rider / VS Code local files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+TestResult*/
+[Tt]est[Rr]esult*/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Publish output
+publish/
+artifacts/
+
+# Local environment
+.env
+.env.*
+!.env.example

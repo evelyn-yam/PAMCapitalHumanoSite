@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" dir="ltr" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Template</title>
+    <base href="/" />
+    <link rel="preload" id="webassembly" />
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="assets/vendors/apexcharts/apexcharts.css" rel="stylesheet" />
+    <link href="assets/vendors/keenicons/styles.bundle.css" rel="stylesheet" />
+    <link href="assets/css/styles.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <script type="importmap"></script>
+</head>
+
+<body class="antialiased flex h-full text-base text-foreground bg-background demo1 kt-sidebar-fixed kt-header-fixed">
+    <script>
+        const defaultThemeMode = 'light';
+        let themeMode;
+
+        if (document.documentElement) {
+            if (localStorage.getItem('kt-theme')) {
+                themeMode = localStorage.getItem('kt-theme');
+            } else if (document.documentElement.hasAttribute('data-kt-theme-mode')) {
+                themeMode = document.documentElement.getAttribute('data-kt-theme-mode');
+            } else {
+                themeMode = defaultThemeMode;
+            }
+
+            if (themeMode === 'system') {
+                themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            document.documentElement.classList.add(themeMode);
+        }
+    </script>
+
+    <div id="app">
+        <div class="app-loading" role="status" aria-live="polite">
+            <div class="app-loading__mark" aria-hidden="true"></div>
+            <div class="app-loading__content">
+                <span class="app-loading__title">Cargando</span>
+                <span class="app-loading__progress loading-progress-text"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="assets/js/core.bundle.js"></script>
+    <script src="assets/vendors/ktui/ktui.min.js"></script>
+    <script src="assets/vendors/apexcharts/apexcharts.min.js"></script>
+    <script src="assets/js/widgets/general.js"></script>
+    <script src="assets/js/layouts/demo1.js"></script>
+    <script src="js/metronic-blazor.js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

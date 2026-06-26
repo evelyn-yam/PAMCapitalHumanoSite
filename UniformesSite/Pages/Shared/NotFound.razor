@@ -1,0 +1,29 @@
+@page "/not-found"
+@layout EmptyLayout
+
+<PageTitle>Error 404</PageTitle>
+
+<main class="error-page">
+    <section class="error-page__content">
+        <div class="error-page__illustration">
+            <img alt="image" class="dark:hidden" src="/assets/media/illustrations/19.svg" />
+            <img alt="image" class="light:hidden" src="/assets/media/illustrations/19-dark.svg" />
+        </div>
+
+        <span class="kt-badge kt-badge-primary kt-badge-outline error-page__badge">Error 404</span>
+
+        <h1 class="error-page__title">No encontramos esta pagina</h1>
+
+        <div class="error-page__description">
+            La pagina solicitada no existe. Verifica la URL o
+            <a class="text-primary font-medium hover:text-primary" href="/dashboard/usuarios">vuelve al inicio</a>.
+        </div>
+
+        <div class="error-page__search">
+            <input class="kt-input" placeholder="Buscar en Metronic" type="text" />
+            <button class="kt-btn kt-btn-ghost kt-btn-icon text-muted-foreground kt-btn-sm" type="button" aria-label="Buscar">
+                <i class="ki-filled ki-magnifier"></i>
+            </button>
+        </div>
+    </section>
+</main>

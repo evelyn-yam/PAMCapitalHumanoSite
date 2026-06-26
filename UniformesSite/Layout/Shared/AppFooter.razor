@@ -1,0 +1,9 @@
+@* Footer institucional compartido por los layouts principales del template. *@
+<footer class="@CssClass">
+    <span>© @DateTime.Now.Year - PAM Hotels. Todos los derechos reservados.</span>
+</footer>
+
+@code {
+    [Parameter]
+    public string CssClass { get; set; } = "app-footer";
+}

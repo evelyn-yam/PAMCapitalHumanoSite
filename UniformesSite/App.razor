@@ -1,0 +1,37 @@
+@*
+  =============================================================================
+  PLANTILLA: Autorizacion de rutas (desactivada)
+  -----------------------------------------------------------------------------
+  Cuando exista API de auth y registres JwtAuthStateProvider en Program.cs:
+  1. Comenta el bloque <Router> activo de abajo.
+  2. Descomenta el bloque <CascadingAuthenticationState> al final de este archivo.
+  3. Descomenta [Authorize] en paginas /dashboard/*.
+  4. Registra servicios en InjectionExtensions y el handler en HttpClientExtensions.
+  -----------------------------------------------------------------------------
+  AuthorizeRouteView: usa el layout por defecto (AuthLayout) y, si la ruta tiene
+  [Authorize] y el usuario no esta autenticado, muestra <NotAuthorized>.
+  RedirectToLogin: envia a /sign-in?returnUrl=... para volver tras el login.
+  =============================================================================
+*@
+
+<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.Shared.NotFound)">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(AuthLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+</Router>
+
+@*
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.Shared.NotFound)">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(AuthLayout)">
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+*@

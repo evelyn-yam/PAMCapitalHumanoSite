@@ -1,0 +1,417 @@
+@page "/dashboard/perfil"
+@layout MainLayout
+@* PLANTILLA AUTH: proteger ruta cuando exista login — @attribute [Authorize] *@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Template.Components
+@using Template.ViewModels.Dashboard
+
+<PageTitle>Perfil</PageTitle>
+
+<div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+    <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-semibold leading-none text-mono">Perfil</h1>
+        <div class="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
+            Gestiona datos de perfil con validaciones nativas de Blazor
+        </div>
+    </div>
+</div>
+
+<div class="kt-card max-w-3xl">
+    <div class="kt-card-header">
+        <h3 class="kt-card-title">Datos de perfil</h3>
+    </div>
+
+    <EditForm id="profile-form" EditContext="editContext" OnValidSubmit="SubmitForm" class="kt-card-content grid gap-5">
+        <DataAnnotationsValidator />
+
+        @if (submitted)
+        {
+            <div class="kt-alert kt-alert-success">
+                <div class="kt-alert-icon">
+                    <i class="ki-filled ki-check-circle"></i>
+                </div>
+                <div class="kt-alert-title">Perfil guardado correctamente.</div>
+            </div>
+        }
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="full-name">Nombre completo</label>
+            <input id="full-name" class="@GetInputClass(nameof(ProfileFormViewModel.FullName))" value="@model.FullName" placeholder="Ej. Maria Lopez" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.FullName))" @oninput="OnFullNameInput" />
+            <ValidationMessage For="@(() => model.FullName)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="email">Correo electronico</label>
+            <input id="email" class="@GetInputClass(nameof(ProfileFormViewModel.Email))" value="@model.Email" placeholder="correo@empresa.com" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.Email))" @oninput="OnEmailInput" />
+            <ValidationMessage For="@(() => model.Email)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="phone">Telefono</label>
+            <input id="phone" class="@GetInputClass(nameof(ProfileFormViewModel.Phone))" value="@model.Phone" placeholder="9981234567" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.Phone))" @oninput="OnPhoneInput" />
+            <ValidationMessage For="@(() => model.Phone)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="age">Edad</label>
+            <input id="age" class="@GetInputClass(nameof(ProfileFormViewModel.Age))" value="@model.Age" placeholder="18" type="number" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.Age))" @oninput="OnAgeInput" />
+            <ValidationMessage For="@(() => model.Age)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="role">Rol</label>
+            <select id="role" class="@GetSelectClass(nameof(ProfileFormViewModel.Role))" value="@model.Role" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.Role))" @onchange="OnRoleChanged">
+                <option value="">Selecciona un rol</option>
+                <option value="admin">Administrador</option>
+                <option value="manager">Gerente</option>
+                <option value="operator">Operador</option>
+                <option value="viewer">Visualizador</option>
+            </select>
+            <ValidationMessage For="@(() => model.Role)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="skills">Permisos</label>
+            <select id="skills"
+                    class="@GetSelectClass(nameof(ProfileFormViewModel.SkillCodes)) min-h-32"
+                    data-kt-select="true"
+                    data-kt-select-multiple="true"
+                    multiple
+                    aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.SkillCodes))"
+                    @onchange="OnSkillCodesChanged">
+                <option value="reports">Reportes</option>
+                <option value="users">Usuarios</option>
+                <option value="billing">Facturacion</option>
+                <option value="settings">Configuracion</option>
+                <option value="audit">Auditoria</option>
+            </select>
+            <ValidationMessage For="@(() => model.SkillCodes)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="profile-color">Color de perfil</label>
+            <div class="kt-input">
+                <input id="profile-color"
+                       data-kt-color-picker="true"
+                       data-kt-color-picker-default="#406f8d"
+                       data-kt-color-picker-input-mode="true"
+                       data-kt-color-picker-position="bottom-start"
+                       type="text"
+                       value="@SelectedColor"
+                       @onchange="OnSelectedColorChanged" />
+            </div>
+        </div>
+
+        <div class="w-full">
+            <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                <label class="kt-form-label flex items-center gap-1 max-w-56">
+                    Fecha de nacimiento
+                </label>
+                <div class="grow">
+                    <div class="@GetInputClass(nameof(ProfileFormViewModel.DateOfBirth))" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.DateOfBirth))">
+                        <i class="ki-filled ki-calendar"></i>
+                        <input @key="DateInputKey"
+                               class="grow"
+                               data-kt-date-picker="true"
+                               data-kt-date-picker-format="dd MMM yyyy"
+                               data-kt-date-picker-input-mode="true"
+                               data-kt-date-picker-position-to-input="left"
+                               placeholder="Selecciona la fecha de nacimiento"
+                               type="text"
+                               value="@model.DateOfBirth"
+                               @oninput="OnDateOfBirthChanged"
+                               @onchange="OnDateOfBirthChanged" />
+                    </div>
+                    <ValidationMessage For="@(() => model.DateOfBirth)" class="text-sm text-destructive" />
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                <label class="kt-form-label flex items-center gap-1 max-w-56">
+                    Vigencia
+                </label>
+                <div class="grow">
+                    <div class="@GetInputClass(nameof(ProfileFormViewModel.ValidityPeriod))" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.ValidityPeriod))">
+                        <i class="ki-filled ki-calendar"></i>
+                        <input class="grow"
+                               data-kt-date-picker="true"
+                               data-kt-date-picker-action-buttons="true"
+                               data-kt-date-picker-display-months-count="2"
+                               data-kt-date-picker-input-mode="true"
+                               data-kt-date-picker-months-to-switch="1"
+                               data-kt-date-picker-position-to-input="left"
+                               data-kt-date-picker-selected-dates='["2025-01-15","2025-01-16","2025-01-17","2025-01-18","2025-01-19","2025-01-20","2025-01-21","2025-01-22","2025-01-23","2025-01-24","2025-01-25","2025-01-26","2025-01-27","2025-01-28","2025-01-29","2025-01-30","2025-01-31"]'
+                               data-kt-date-picker-selected-month="0"
+                               data-kt-date-picker-selected-year="2025"
+                               data-kt-date-picker-selection-dates-mode="multiple-ranged"
+                               data-kt-date-picker-type="multiple"
+                               placeholder="Selecciona el periodo de vigencia"
+                               type="text"
+                               value="@model.ValidityPeriod"
+                               @oninput="OnValidityPeriodChanged"
+                               @onchange="OnValidityPeriodChanged" />
+                    </div>
+                    <ValidationMessage For="@(() => model.ValidityPeriod)" class="text-sm text-destructive" />
+                </div>
+            </div>
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="password">Contrasena</label>
+            <div class="@GetInputClass(nameof(ProfileFormViewModel.Password))" data-kt-toggle-password="true" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.Password))">
+                <input id="password" type="password" value="@model.Password" placeholder="Minimo 8 caracteres" @oninput="OnPasswordInput" />
+                <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" type="button" data-kt-toggle-password-trigger="true">
+                    <span class="kt-toggle-password-active:hidden">
+                        <i class="ki-filled ki-eye text-muted-foreground"></i>
+                    </span>
+                    <span class="hidden kt-toggle-password-active:block">
+                        <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                    </span>
+                </button>
+            </div>
+            <ValidationMessage For="@(() => model.Password)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-form-label" for="confirm-password">Confirmar contrasena</label>
+            <div class="@GetInputClass(nameof(ProfileFormViewModel.ConfirmPassword))" data-kt-toggle-password="true" aria-invalid="@GetAriaInvalid(nameof(ProfileFormViewModel.ConfirmPassword))">
+                <input id="confirm-password" type="password" value="@model.ConfirmPassword" placeholder="Repite la contrasena" @oninput="OnConfirmPasswordInput" />
+                <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" type="button" data-kt-toggle-password-trigger="true">
+                    <span class="kt-toggle-password-active:hidden">
+                        <i class="ki-filled ki-eye text-muted-foreground"></i>
+                    </span>
+                    <span class="hidden kt-toggle-password-active:block">
+                        <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                    </span>
+                </button>
+            </div>
+            <ValidationMessage For="@(() => model.ConfirmPassword)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="w-full">
+            <div class="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+                <label class="kt-form-label flex items-center gap-1 max-w-56">
+                    Documentos
+                </label>
+                <div class="grow">
+                    <MetronicFilePicker Files="selectedDocumentFiles"
+                                         FilesChanged="OnDocumentFilesChanged"
+                                         Multiple="true"
+                                         MaxFiles="5"
+                                         Accept=".pdf,.jpeg,.jpg,.png,.gif,.webp"
+                                         Description="PDF, JPEG, PNG, GIF, WebP, hasta 2 MB." />
+                    <ValidationMessage For="@(() => model.DocumentName)" class="text-sm text-destructive" />
+                </div>
+            </div>
+        </div>
+
+        <div class="grid gap-2">
+            <label class="kt-label justify-between">
+                <span>
+                    <span class="block text-sm font-medium text-mono">Estado</span>
+                    <span class="block text-xs text-secondary-foreground">@(model.IsActive ? "Activo" : "Desactivado")</span>
+                </span>
+                <input class="kt-switch" type="checkbox" checked="@model.IsActive" @onchange="OnIsActiveChanged" />
+            </label>
+        </div>
+
+        <div class="grid gap-2">
+            <label class="flex items-start gap-3 text-sm text-secondary-foreground">
+                <input class="kt-checkbox mt-0.5" type="checkbox" checked="@model.AcceptTerms" @onchange="OnAcceptTermsChanged" />
+                <span>Acepto los terminos y condiciones.</span>
+            </label>
+            <ValidationMessage For="@(() => model.AcceptTerms)" class="text-sm text-destructive" />
+        </div>
+
+        <div class="flex justify-end">
+            <button class="kt-btn kt-btn-primary" type="submit" disabled="@(!isFormValid)">
+                Guardar perfil
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private readonly ProfileFormViewModel model = new();
+    private EditContext editContext = default!;
+    private bool isFormValid;
+    private bool submitted;
+    private string SelectedColor { get; set; } = "#406f8d";
+    private IReadOnlyList<IBrowserFile> selectedDocumentFiles = [];
+    private string DateInputKey = "date-input";
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(model);
+        editContext.OnFieldChanged += HandleFieldChanged;
+        isFormValid = IsModelValid();
+    }
+
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs args)
+    {
+        submitted = false;
+        isFormValid = IsModelValid();
+    }
+
+    private void SubmitForm()
+    {
+        submitted = true;
+    }
+
+    private void OnFullNameInput(ChangeEventArgs args)
+    {
+        UpdateStringField(nameof(ProfileFormViewModel.FullName), value => model.FullName = value, args);
+    }
+
+    private void OnEmailInput(ChangeEventArgs args)
+    {
+        UpdateStringField(nameof(ProfileFormViewModel.Email), value => model.Email = value, args);
+    }
+
+    private void OnPhoneInput(ChangeEventArgs args)
+    {
+        UpdateStringField(nameof(ProfileFormViewModel.Phone), value => model.Phone = value, args);
+    }
+
+    private void OnAgeInput(ChangeEventArgs args)
+    {
+        model.Age = int.TryParse(args.Value?.ToString(), out var age) ? age : null;
+        NotifyFieldChanged(nameof(ProfileFormViewModel.Age));
+    }
+
+    private void OnRoleChanged(ChangeEventArgs args)
+    {
+        model.Role = args.Value?.ToString();
+        NotifyFieldChanged(nameof(ProfileFormViewModel.Role));
+    }
+
+    private void OnSkillCodesChanged(ChangeEventArgs args)
+    {
+        model.SkillCodes = args.Value switch
+        {
+            string[] values => values,
+            IEnumerable<string> values => values.ToArray(),
+            string value when !string.IsNullOrWhiteSpace(value) => [value],
+            _ => []
+        };
+
+        NotifyFieldChanged(nameof(ProfileFormViewModel.SkillCodes));
+    }
+
+    private void OnSelectedColorChanged(ChangeEventArgs args)
+    {
+        SelectedColor = args.Value?.ToString() ?? "#406f8d";
+    }
+
+    private void OnPasswordInput(ChangeEventArgs args)
+    {
+        UpdateStringField(nameof(ProfileFormViewModel.Password), value => model.Password = value, args);
+        NotifyFieldChanged(nameof(ProfileFormViewModel.ConfirmPassword));
+    }
+
+    private void OnConfirmPasswordInput(ChangeEventArgs args)
+    {
+        UpdateStringField(nameof(ProfileFormViewModel.ConfirmPassword), value => model.ConfirmPassword = value, args);
+    }
+
+    private void OnAcceptTermsChanged(ChangeEventArgs args)
+    {
+        model.AcceptTerms = args.Value is true;
+        NotifyFieldChanged(nameof(ProfileFormViewModel.AcceptTerms));
+    }
+
+    private void OnIsActiveChanged(ChangeEventArgs args)
+    {
+        model.IsActive = args.Value is true;
+        NotifyFieldChanged(nameof(ProfileFormViewModel.IsActive));
+    }
+
+    private void OnDocumentFilesChanged(IReadOnlyList<IBrowserFile> files)
+    {
+        selectedDocumentFiles = files;
+        model.DocumentName = selectedDocumentFiles.Count > 0
+            ? string.Join(", ", selectedDocumentFiles.Select(file => file.Name))
+            : null;
+
+        NotifyFieldChanged(nameof(ProfileFormViewModel.DocumentName));
+    }
+
+    private void OnDateOfBirthChanged(ChangeEventArgs args)
+    {
+        model.DateOfBirth = args.Value?.ToString();
+        NotifyFieldChanged(nameof(ProfileFormViewModel.DateOfBirth));
+    }
+
+    private void OnValidityPeriodChanged(ChangeEventArgs args)
+    {
+        model.ValidityPeriod = args.Value?.ToString();
+        NotifyFieldChanged(nameof(ProfileFormViewModel.ValidityPeriod));
+    }
+
+    private void UpdateStringField(string fieldName, Action<string?> updateValue, ChangeEventArgs args)
+    {
+        updateValue(args.Value?.ToString());
+        NotifyFieldChanged(fieldName);
+    }
+
+    private void NotifyFieldChanged(string fieldName)
+    {
+        submitted = false;
+        editContext.NotifyFieldChanged(new FieldIdentifier(model, fieldName));
+        isFormValid = IsModelValid();
+    }
+
+    private string GetInputClass(string fieldName)
+    {
+        return GetControlClass(fieldName, "kt-input");
+    }
+
+    private string GetSelectClass(string fieldName)
+    {
+        return GetControlClass(fieldName, "kt-select");
+    }
+
+    private string GetControlClass(string fieldName, string baseClass)
+    {
+        var cssClass = baseClass;
+
+        if (!editContext.IsModified(Field(fieldName)))
+        {
+            return cssClass;
+        }
+
+        return IsFieldInvalid(fieldName)
+            ? cssClass
+            : $"{cssClass} border-green-500";
+    }
+
+    private bool IsFieldInvalid(string fieldName)
+    {
+        var field = Field(fieldName);
+
+        return editContext.IsModified(field)
+            && editContext.GetValidationMessages(field).Any();
+    }
+
+    private string GetAriaInvalid(string fieldName)
+    {
+        return IsFieldInvalid(fieldName) ? "true" : "false";
+    }
+
+    private FieldIdentifier Field(string fieldName)
+    {
+        return new FieldIdentifier(model, fieldName);
+    }
+
+    private bool IsModelValid()
+    {
+        var validationContext = new ValidationContext(model);
+        var validationResults = new List<ValidationResult>();
+
+        return Validator.TryValidateObject(model, validationContext, validationResults, validateAllProperties: true);
+    }
+
+}

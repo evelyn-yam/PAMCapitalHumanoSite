@@ -1,0 +1,117 @@
+@*
+  PLANTILLA AUTH (SignIn.razor)
+  ---------------------------
+  Modo actual: solo UI Metronic. El submit navega al dashboard sin llamar API.
+  Para activar login real:
+  1. Descomenta los @inject y el bloque @code marcado PLANTILLA AUTH al final.
+  2. Comenta HandleSignInDemo y usa HandleSignInAsync.
+  3. Registra servicios en Program.cs e InjectionExtensions (ver docs/PLANTILLA_AUTH.md).
+*@
+@page "/"
+@page "/sign-in"
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@* PLANTILLA AUTH:
+@using Microsoft.AspNetCore.WebUtilities
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+*@
+
+<PageTitle>Iniciar sesion</PageTitle>
+
+<div class="kt-card auth-sign-in-card">
+    <form class="kt-card-content flex flex-col gap-5 p-10" id="sign_in_form" @onsubmit="HandleSignIn" @onsubmit:preventDefault="true">
+        <div class="text-center mb-2.5">
+            <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Iniciar sesion</h3>
+            <div class="flex items-center justify-center font-medium">
+                <span class="text-sm text-secondary-foreground me-1.5">¿Necesitas una cuenta?</span>
+                <a class="text-sm link" href="/sign-up">Registrate</a>
+            </div>
+        </div>
+
+        @if (showDemoNotice)
+        {
+            <div class="kt-alert kt-alert-light kt-alert-info">
+                <div class="kt-alert-title">Modo plantilla: sin API de auth. El acceso al dashboard es directo.</div>
+            </div>
+        }
+
+     
+
+        <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono" for="sign_in_email">Correo electronico</label>
+            <input id="sign_in_email" class="kt-input" placeholder="email@email.com" type="text" @bind="Email" autocomplete="username" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between gap-1">
+                <label class="kt-form-label font-normal text-mono" for="sign_in_password">Contrasena</label>
+                <a class="text-sm kt-link shrink-0" href="/reset-password/enter-email">¿Olvidaste tu contrasena?</a>
+            </div>
+            <div class="kt-input" data-kt-toggle-password="true">
+                <input id="sign_in_password" placeholder="Ingresa tu contrasena" type="password" @bind="Password" autocomplete="current-password" />
+                <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" type="button" data-kt-toggle-password-trigger="true">
+                    <span class="kt-toggle-password-active:hidden">
+                        <i class="ki-filled ki-eye text-muted-foreground"></i>
+                    </span>
+                    <span class="hidden kt-toggle-password-active:block">
+                        <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <label class="kt-label">
+            <input class="kt-checkbox kt-checkbox-sm" type="checkbox" @bind="RememberMe" />
+            <span class="kt-checkbox-label">Recordarme</span>
+        </label>
+
+        <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">
+            Iniciar sesion
+        </button>
+
+        <div class="flex items-center gap-2">
+            <span class="border-t border-border w-full"></span>
+            <span class="text-xs text-muted-foreground font-medium uppercase">O</span>
+            <span class="border-t border-border w-full"></span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+            <a class="kt-btn kt-btn-outline justify-center opacity-60 pointer-events-none" href="#" aria-disabled="true" title="Proximamente">
+                <img class="size-3.5 shrink-0" src="/assets/media/brand-logos/google.svg" alt="Google" />
+                Usar Google
+            </a>
+            <a class="kt-btn kt-btn-outline justify-center opacity-60 pointer-events-none" href="#" aria-disabled="true" title="Proximamente">
+                <img class="size-3.5 shrink-0 dark:hidden" src="/assets/media/brand-logos/apple-black.svg" alt="Apple" />
+                <img class="size-3.5 shrink-0 light:hidden" src="/assets/media/brand-logos/apple-white.svg" alt="Apple" />
+                Usar Apple
+            </a>
+        </div>
+
+    </form>
+</div>
+
+@code {
+    private string? Email { get; set; }
+    private string? Password { get; set; }
+    private bool RememberMe { get; set; }
+    private const bool showDemoNotice = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await JS.InvokeVoidAsync("blazorMetronic.init");
+    }
+
+    private void HandleSignIn()
+    {
+        // Modo plantilla: navega al dashboard sin validar credenciales ni guardar JWT.
+        Navigation.NavigateTo("/dashboard/perfil");
+    }
+
+    // PLANTILLA AUTH: implementacion con API — ver docs/PLANTILLA_AUTH.md (seccion SignIn.razor)
+}

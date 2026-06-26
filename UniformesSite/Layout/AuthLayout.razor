@@ -1,0 +1,47 @@
+@inherits LayoutComponentBase
+
+<div class="auth-page">
+    <img class="auth-page__static-logo" src="/images/pamhotels.png" alt="PAM Hotels" />
+
+    <div class="auth-page__brand-marquee" aria-hidden="true">
+        <div class="auth-page__brand-marquee-track">
+            @foreach (var brandLogo in BrandLogos.Concat(BrandLogos))
+            {
+                <img class="auth-page__brand-logo" src="@GetBrandLogoPath(brandLogo)" alt="" />
+            }
+        </div>
+    </div>
+
+    <div class="auth-page__shell">
+        <div class="auth-page__form">
+            @Body
+        </div>
+    </div>
+
+    <AppFooter CssClass="app-footer app-footer--auth" />
+</div>
+
+@code {
+    private static readonly string[] BrandLogos =
+    [
+        "HRH_Logo.png",
+        "unico-hotel.png",
+        "Nobu_Logo_LosCabos.png",
+        "legendary.png",
+        "aloft-santo-domingo.png",
+        "AVA.png",
+        "CUNRI_Reverse.png",
+        "CUNRP_Reverse.png",
+        "HardRock_GolfClub_RivieraMaya.png",
+        "HR GOLF CLUB_Cana Bay.png",
+        "Logotipo_Riviera_Cancun.png",
+        "MIDRI_Reverse.png",
+        "UNICO_LOGO.png",
+        "Prive_Travel_Club.png"
+    ];
+
+    private static string GetBrandLogoPath(string fileName)
+    {
+        return $"/images/brands/{Uri.EscapeDataString(fileName)}";
+    }
+}

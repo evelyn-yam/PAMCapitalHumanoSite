@@ -1,0 +1,213 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+@* Selector reutilizable con apariencia Metronic; conserva los archivos seleccionados en estado Blazor. *@
+<div class="file-upload">
+    <div class="dropzone dropzone-clickable relative overflow-hidden">
+        <div class="dropzone-message">
+            <div class="dropzone-message-icon">
+                <i class="ki-filled ki-cloud-add"></i>
+            </div>
+            <div class="dropzone-message-text">
+                <span class="dropzone-message-title">
+                    @Title
+                </span>
+                <span class="dropzone-message-desc">
+                    @Description
+                </span>
+            </div>
+            <button class="kt-btn kt-btn-sm kt-btn-primary dropzone-browse-btn pointer-events-none" type="button">
+                @BrowseText
+            </button>
+        </div>
+        <InputFile class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                   accept="@Accept"
+                   multiple="@Multiple"
+                   OnChange="OnFilesSelected" />
+    </div>
+
+    @if (selectedFiles.Count > 0 || rejectedFiles.Count > 0)
+    {
+        <div class="file-upload-list mt-3">
+            <div class="dropzone-previews">
+                @foreach (var file in selectedFiles)
+                {
+                    <div class="dropzone-file-item dz-preview dz-file-preview">
+                        <div class="dropzone-file-item-icon">
+                            <i class="@GetFileIconClass(file.Name)"></i>
+                        </div>
+                        <div class="dropzone-file-item-content">
+                            <div class="dropzone-file-item-header">
+                                <div class="dropzone-file-item-info">
+                                    <div class="dropzone-file-item-name">
+                                        <div class="dropzone-file-item-wrapper">@file.Name</div>
+                                    </div>
+                                    <div class="dropzone-file-item-size">@FormatFileSize(file.Size)</div>
+                                </div>
+                                <div class="dropzone-file-item-actions">
+                                    <button type="button"
+                                            class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost"
+                                            aria-label="Quitar archivo"
+                                            title="Quitar archivo"
+                                            @onclick="() => RemoveFile(file)">
+                                        <i class="ki-filled ki-cross"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @foreach (var rejectedFile in rejectedFiles)
+                {
+                    <div class="dropzone-file-item dz-preview dz-file-preview dz-error">
+                        <div class="dropzone-file-item-icon">
+                            <i class="ki-filled ki-information-1"></i>
+                        </div>
+                        <div class="dropzone-file-item-content">
+                            <div class="dropzone-file-item-header">
+                                <div class="dropzone-file-item-info">
+                                    <div class="dropzone-file-item-name">
+                                        <div class="dropzone-file-item-wrapper">@rejectedFile.Name</div>
+                                    </div>
+                                    <div class="dropzone-file-item-size text-destructive">@rejectedFile.Reason</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<IBrowserFile> selectedFiles = [];
+    private readonly List<RejectedFile> rejectedFiles = [];
+
+    [Parameter]
+    public IReadOnlyList<IBrowserFile> Files { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<IBrowserFile>> FilesChanged { get; set; }
+
+    [Parameter]
+    public bool Multiple { get; set; }
+
+    [Parameter]
+    public string Accept { get; set; } = ".jpeg,.jpg,.png,.gif,.webp";
+
+    [Parameter]
+    public int MaxFiles { get; set; } = 1;
+
+    [Parameter]
+    public long MaxFileSize { get; set; } = 2 * 1024 * 1024;
+
+    [Parameter]
+    public string Title { get; set; } = "Selecciona un archivo o arrastralo aqui.";
+
+    [Parameter]
+    public string Description { get; set; } = "JPEG, PNG, GIF, WebP, hasta 2 MB.";
+
+    [Parameter]
+    public string BrowseText { get; set; } = "Buscar archivo";
+
+    protected override void OnParametersSet()
+    {
+        selectedFiles.Clear();
+        selectedFiles.AddRange(Files);
+    }
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs args)
+    {
+        rejectedFiles.Clear();
+
+        var incomingFiles = args.GetMultipleFiles(Multiple ? MaxFiles : 1)
+            .Where(IsAcceptedFile)
+            .Where(IsAcceptedSize)
+            .ToList();
+
+        var allowedFiles = Multiple
+            ? selectedFiles
+                .Concat(incomingFiles)
+                .DistinctBy(file => $"{file.Name}:{file.Size}:{file.LastModified:O}")
+                .Take(MaxFiles)
+                .ToList()
+            : incomingFiles.Take(1).ToList();
+
+        selectedFiles.Clear();
+        selectedFiles.AddRange(allowedFiles);
+
+        await FilesChanged.InvokeAsync(selectedFiles.ToArray());
+    }
+
+    private bool IsAcceptedFile(IBrowserFile file)
+    {
+        if (string.IsNullOrWhiteSpace(Accept))
+        {
+            return true;
+        }
+
+        var acceptedValues = Accept.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var extension = Path.GetExtension(file.Name);
+        var isAccepted = acceptedValues.Any(value =>
+            value.Equals(extension, StringComparison.OrdinalIgnoreCase)
+            || value.Equals(file.ContentType, StringComparison.OrdinalIgnoreCase)
+            || (value.EndsWith("/*", StringComparison.Ordinal) && file.ContentType.StartsWith(value[..^1], StringComparison.OrdinalIgnoreCase)));
+
+        if (!isAccepted)
+        {
+            rejectedFiles.Add(new RejectedFile(file.Name, "Tipo de archivo no permitido."));
+        }
+
+        return isAccepted;
+    }
+
+    private bool IsAcceptedSize(IBrowserFile file)
+    {
+        if (file.Size <= MaxFileSize)
+        {
+            return true;
+        }
+
+        rejectedFiles.Add(new RejectedFile(file.Name, $"Maximo {FormatFileSize(MaxFileSize)}."));
+        return false;
+    }
+
+    private async Task RemoveFile(IBrowserFile file)
+    {
+        selectedFiles.Remove(file);
+        await FilesChanged.InvokeAsync(selectedFiles.ToArray());
+    }
+
+    private static string GetFileIconClass(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).TrimStart('.').ToLowerInvariant();
+
+        return extension switch
+        {
+            "pdf" => "ki-filled ki-file-up",
+            "png" or "jpg" or "jpeg" or "gif" or "webp" => "ki-filled ki-picture",
+            "xls" or "xlsx" or "csv" => "ki-filled ki-document",
+            "doc" or "docx" => "ki-filled ki-document",
+            "zip" or "rar" or "7z" => "ki-filled ki-folder",
+            _ => "ki-filled ki-file-up"
+        };
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
+
+        if (bytes < 1024 * 1024)
+        {
+            return $"{bytes / 1024d:0.#} KB";
+        }
+
+        return $"{bytes / 1024d / 1024d:0.#} MB";
+    }
+
+    private sealed record RejectedFile(string Name, string Reason);
+}

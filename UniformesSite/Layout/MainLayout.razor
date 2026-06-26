@@ -1,0 +1,57 @@
+@using Template.Layout.Shared
+@using Microsoft.AspNetCore.Components.Routing
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<div class="flex min-h-screen grow bg-background text-foreground">
+    <Sidebar />
+
+    <div class="kt-wrapper flex grow flex-col">
+        <Navbar />
+
+        <main class="grow pt-24">
+            <div class="kt-container-fixed py-8">
+                @Body
+            </div>
+        </main>
+
+        <AppFooter />
+    </div>
+</div>
+
+@code {
+    private bool shouldInitializeMetronic = true;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!shouldInitializeMetronic)
+        {
+            return;
+        }
+
+        shouldInitializeMetronic = false;
+        await JS.InvokeVoidAsync("blazorMetronic.init");
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        shouldInitializeMetronic = true;
+        _ = InvokeAsync(async () =>
+        {
+            await JS.InvokeVoidAsync("blazorMetronic.cleanup");
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

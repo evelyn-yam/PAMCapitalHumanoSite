@@ -1,0 +1,345 @@
+@page "/dashboard/usuarios"
+@layout MainLayout
+@* PLANTILLA AUTH: proteger ruta cuando exista login — @attribute [Authorize] *@
+@using Template.Entities
+@inject IUsersService UsersService
+
+<PageTitle>Usuarios</PageTitle>
+
+<div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+    <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-semibold leading-none text-mono">Usuarios</h1>
+        <div class="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
+            Gestion de usuarios, roles y estado operativo
+        </div>
+    </div>
+    <div class="flex items-center gap-2.5">
+        <button class="kt-btn kt-btn-outline">
+            <i class="ki-filled ki-exit-up"></i>
+            Exportar
+        </button>
+        <button class="kt-btn kt-btn-primary">
+            <i class="ki-filled ki-plus"></i>
+            Nuevo usuario
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(loadMessage))
+{
+    <div class="kt-alert kt-alert-light kt-alert-info mb-5">
+        <div class="kt-alert-title">
+            @loadMessage
+        </div>
+    </div>
+}
+
+<div class="kt-card">
+    <div class="kt-card-header flex-wrap gap-2">
+        <h3 class="kt-card-title">
+            Usuarios
+        </h3>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+            <label class="kt-input w-64">
+                <i class="ki-filled ki-magnifier"></i>
+                <input placeholder="Buscar usuarios" @bind="SearchText" @bind:event="oninput" />
+            </label>
+
+            <select class="kt-select w-36" value="@SelectedRole" @onchange="OnRoleChanged">
+                <option value="">Todos los roles</option>
+                @foreach (var role in Roles)
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+
+            <select class="kt-select w-36" value="@SelectedStatus" @onchange="OnStatusChanged">
+                <option value="">Todos</option>
+                <option value="Activo">Activo</option>
+                <option value="Pausado">Pausado</option>
+                <option value="Invitado">Invitado</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="kt-card-content p-0">
+        <div class="kt-scrollable-x-auto">
+            <table class="kt-table align-middle text-sm text-secondary-foreground">
+                <thead>
+                    <tr>
+                        <th class="w-[48px] text-center">
+                            <input class="kt-checkbox kt-checkbox-sm" type="checkbox" checked="@AllVisibleSelected" @onchange="ToggleVisibleSelection" />
+                        </th>
+                        <th class="min-w-[280px]">Usuario</th>
+                        <th class="min-w-[160px]">Rol</th>
+                        <th class="min-w-[160px]">Ubicacion</th>
+                        <th class="min-w-[130px]">Estado</th>
+                        <th class="min-w-[150px]">Telefono</th>
+                        <th class="w-[64px]"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (VisibleUsers.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-10 text-secondary-foreground">
+                                No hay datos por mostrar.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var user in VisibleUsers)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    <input class="kt-checkbox kt-checkbox-sm" type="checkbox" checked="@SelectedIds.Contains(user.Id)" @onchange="args => ToggleSelection(user.Id, args)" />
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-2.5">
+                                        <img alt="" class="rounded-full size-9 shrink-0" src="@user.Avatar" />
+                                        <div class="flex flex-col gap-0.5">
+                                            <a class="text-sm font-semibold text-mono hover:text-primary" href="#">
+                                                @user.Name
+                                            </a>
+                                            <span class="text-2sm text-secondary-foreground">@user.Email</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="kt-badge kt-badge-outline">@user.Role</span>
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <img alt="" class="h-4 rounded-sm" src="@user.Flag" />
+                                        <span>@user.Location</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="@StatusClass(user.Status)">
+                                        <span class="kt-badge-dot"></span>
+                                        @user.Status
+                                    </span>
+                                </td>
+                                <td>@user.Phone</td>
+                                <td>
+                                    <div class="kt-menu" data-kt-menu="true">
+                                        <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                                            <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost" type="button">
+                                                <i class="ki-filled ki-dots-vertical"></i>
+                                            </button>
+                                            <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
+                                                <div class="kt-menu-item">
+                                                    <a class="kt-menu-link" href="#">
+                                                        <span class="kt-menu-icon"><i class="ki-filled ki-eye"></i></span>
+                                                        <span class="kt-menu-title">Ver perfil</span>
+                                                    </a>
+                                                </div>
+                                                <div class="kt-menu-item">
+                                                    <a class="kt-menu-link" href="#">
+                                                        <span class="kt-menu-icon"><i class="ki-filled ki-notepad-edit"></i></span>
+                                                        <span class="kt-menu-title">Editar</span>
+                                                    </a>
+                                                </div>
+                                                <div class="kt-menu-item">
+                                                    <a class="kt-menu-link" href="#">
+                                                        <span class="kt-menu-icon"><i class="ki-filled ki-trash"></i></span>
+                                                        <span class="kt-menu-title">Eliminar</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+        <div class="flex items-center gap-2 order-2 md:order-1">
+            Mostrar
+            <select class="kt-select w-20" value="@PageSize" @onchange="OnPageSizeChanged">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+            </select>
+            por pagina
+            <span class="ms-2">@SelectedIds.Count seleccionados</span>
+        </div>
+
+        <div class="flex items-center gap-4 order-1 md:order-2">
+            <span>@PaginationInfo</span>
+            <div class="flex items-center gap-1">
+                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-outline" type="button" disabled="@(Page == 1)" @onclick="PreviousPage">
+                    <i class="ki-filled ki-left"></i>
+                </button>
+                @for (var pageNumber = 1; pageNumber <= TotalPages; pageNumber++)
+                {
+                    var current = pageNumber;
+                    <button class="@PageButtonClass(current)" type="button" @onclick="() => GoToPage(current)">
+                        @current
+                    </button>
+                }
+                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-outline" type="button" disabled="@(Page == TotalPages)" @onclick="NextPage">
+                    <i class="ki-filled ki-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string searchText = string.Empty;
+    private string SelectedRole { get; set; } = string.Empty;
+    private string SelectedStatus { get; set; } = string.Empty;
+    private int Page { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private HashSet<int> SelectedIds { get; } = [];
+    private string? loadMessage;
+    private IReadOnlyList<UserRow> users = [];
+
+    private string SearchText
+    {
+        get => searchText;
+        set
+        {
+            searchText = value;
+            Page = 1;
+        }
+    }
+
+    private IReadOnlyList<string> Roles => users.Select(user => user.Role).Distinct().Order().ToList();
+
+    private IEnumerable<UserRow> FilteredUsers => users.Where(user =>
+        (string.IsNullOrWhiteSpace(SearchText)
+            || user.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            || user.Email.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            || user.Role.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+        && (string.IsNullOrWhiteSpace(SelectedRole) || user.Role == SelectedRole)
+        && (string.IsNullOrWhiteSpace(SelectedStatus) || user.Status == SelectedStatus));
+
+    private IReadOnlyList<UserRow> FilteredList => FilteredUsers.ToList();
+    private IReadOnlyList<UserRow> VisibleUsers => FilteredList.Skip((Page - 1) * PageSize).Take(PageSize).ToList();
+    private int TotalItems => FilteredList.Count;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)PageSize));
+    private bool AllVisibleSelected => VisibleUsers.Count > 0 && VisibleUsers.All(user => SelectedIds.Contains(user.Id));
+    private string PaginationInfo => TotalItems == 0 ? "Sin resultados" : $"{((Page - 1) * PageSize) + 1}-{Math.Min(Page * PageSize, TotalItems)} de {TotalItems}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var apiUsers = (await UsersService.GetUsersAsync()).ToList();
+
+            if (apiUsers.Count > 0)
+            {
+                users = apiUsers
+                    .Select((item, index) => MapUserItem(item, index))
+                    .ToList();
+                loadMessage = null;
+                return;
+            }
+
+            users = [];
+            loadMessage = "No hay datos por mostrar.";
+        }
+        catch
+        {
+            users = [];
+            loadMessage = "No hay datos por mostrar.";
+        }
+    }
+
+    private void ToggleSelection(int id, ChangeEventArgs args)
+    {
+        if (args.Value is true)
+        {
+            SelectedIds.Add(id);
+        }
+        else
+        {
+            SelectedIds.Remove(id);
+        }
+    }
+
+    private void ToggleVisibleSelection(ChangeEventArgs args)
+    {
+        if (args.Value is true)
+        {
+            foreach (var user in VisibleUsers)
+            {
+                SelectedIds.Add(user.Id);
+            }
+        }
+        else
+        {
+            foreach (var user in VisibleUsers)
+            {
+                SelectedIds.Remove(user.Id);
+            }
+        }
+    }
+
+    private void OnRoleChanged(ChangeEventArgs args)
+    {
+        SelectedRole = args.Value?.ToString() ?? string.Empty;
+        Page = 1;
+    }
+
+    private void OnStatusChanged(ChangeEventArgs args)
+    {
+        SelectedStatus = args.Value?.ToString() ?? string.Empty;
+        Page = 1;
+    }
+
+    private void OnPageSizeChanged(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out var size))
+        {
+            PageSize = size;
+            Page = 1;
+        }
+    }
+
+    private void PreviousPage() => Page = Math.Max(1, Page - 1);
+    private void NextPage() => Page = Math.Min(TotalPages, Page + 1);
+    private void GoToPage(int page) => Page = Math.Clamp(page, 1, TotalPages);
+
+    private static string StatusClass(string status) => status switch
+    {
+        "Activo" => "kt-badge kt-badge-success kt-badge-outline gap-1.5",
+        "Pausado" => "kt-badge kt-badge-warning kt-badge-outline gap-1.5",
+        _ => "kt-badge kt-badge-info kt-badge-outline gap-1.5"
+    };
+
+    private string PageButtonClass(int page) =>
+        page == Page ? "kt-btn kt-btn-sm kt-btn-icon kt-btn-primary" : "kt-btn kt-btn-sm kt-btn-icon kt-btn-outline";
+
+    private static UserRow MapUserItem(User item, int index) =>
+        new(
+            StableId(item.Id, index + 1),
+            FormatFullName(item.Name, item.LastName),
+            item.Email ?? "sin-correo@registro.local",
+            item.Role ?? "Sin rol",
+            item.Ubication ?? "—",
+            "assets/media/flags/mexico.svg",
+            item.Status ?? "Activo",
+            string.IsNullOrWhiteSpace(item.Phone) ? "Sin telefono" : item.Phone,
+            $"assets/media/avatars/300-{(index % 12) + 1}.png");
+
+    private static int StableId(string? id, int fallback) =>
+        string.IsNullOrWhiteSpace(id) ? fallback : Math.Abs(id.GetHashCode(StringComparison.Ordinal));
+
+    private static string FormatFullName(string? name, string? lastName)
+    {
+        var fullName = $"{name} {lastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? "Sin nombre" : fullName;
+    }
+
+    private sealed record UserRow(int Id, string Name, string Email, string Role, string Location, string Flag, string Status, string Phone, string Avatar);
+}

@@ -1,0 +1,86 @@
+@*
+  PLANTILLA AUTH (SignUp.razor) — modo plantilla: registro visual sin API.
+  Ver docs/PLANTILLA_AUTH.md para activar AuthService.SignUpAsync.
+*@
+@page "/sign-up"
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Registro</PageTitle>
+
+<div class="kt-card auth-sign-in-card">
+    <form class="kt-card-content flex flex-col gap-5 p-10" id="sign_up_form" @onsubmit="HandleSignUp" @onsubmit:preventDefault="true">
+        <div class="text-center mb-2.5">
+            <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Crear cuenta</h3>
+            <div class="flex items-center justify-center">
+                <span class="text-sm text-secondary-foreground me-1.5">Ya tienes una cuenta?</span>
+                <a class="text-sm link" href="/sign-in">Iniciar sesion</a>
+            </div>
+        </div>
+
+        @if (showDemoNotice)
+        {
+            <div class="kt-alert kt-alert-light kt-alert-info">
+                <div class="kt-alert-title">Modo plantilla: sin API de auth.</div>
+            </div>
+        }
+
+        <div class="flex flex-col gap-1">
+            <label class="kt-form-label text-mono" for="sign_up_email">Correo electronico</label>
+            <input id="sign_up_email" class="kt-input" placeholder="email@email.com" type="text" @bind="Email" autocomplete="username" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono" for="sign_up_password">Contrasena</label>
+            <div class="kt-input" data-kt-toggle-password="true">
+                <input id="sign_up_password" placeholder="Ingresa tu contrasena" type="password" @bind="Password" autocomplete="new-password" />
+                <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
+                    <span class="kt-toggle-password-active:hidden"><i class="ki-filled ki-eye text-muted-foreground"></i></span>
+                    <span class="hidden kt-toggle-password-active:block"><i class="ki-filled ki-eye-slash text-muted-foreground"></i></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono" for="sign_up_confirm_password">Confirmar contrasena</label>
+            <div class="kt-input" data-kt-toggle-password="true">
+                <input id="sign_up_confirm_password" placeholder="Repite tu contrasena" type="password" @bind="ConfirmPassword" autocomplete="new-password" />
+                <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
+                    <span class="kt-toggle-password-active:hidden"><i class="ki-filled ki-eye text-muted-foreground"></i></span>
+                    <span class="hidden kt-toggle-password-active:block"><i class="ki-filled ki-eye-slash text-muted-foreground"></i></span>
+                </button>
+            </div>
+        </div>
+
+        <label class="kt-checkbox-group">
+            <input class="kt-checkbox kt-checkbox-sm" type="checkbox" @bind="AcceptedTerms" />
+            <span class="kt-checkbox-label">
+                Acepto los <a class="text-sm link" href="#">terminos y condiciones</a>
+            </span>
+        </label>
+
+        <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Crear cuenta</button>
+    </form>
+</div>
+
+@code {
+    private string? Email { get; set; }
+    private string? Password { get; set; }
+    private string? ConfirmPassword { get; set; }
+    private bool AcceptedTerms { get; set; }
+    private const bool showDemoNotice = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await JS.InvokeVoidAsync("blazorMetronic.init");
+    }
+
+    private void HandleSignUp()
+    {
+        if (!AcceptedTerms) return;
+        Navigation.NavigateTo("/dashboard/perfil");
+    }
+
+    // PLANTILLA AUTH: ver docs/PLANTILLA_AUTH.md (seccion SignUp.razor)
+}
